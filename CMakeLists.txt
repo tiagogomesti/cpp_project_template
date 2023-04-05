@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Graphs)
+project(ProjectTemplate)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 
 include(FetchContent)
 
@@ -43,6 +45,17 @@ target_link_libraries(
     PRIVATE
         GTest::GTest
         ${CMAKE_PROJECT_NAME}
+        gcov
 )
 
 add_test("${CMAKE_PROJECT_NAME}_gtest" ${UT_PROJECT})
+
+set(GCOV_FILES_PATH "CMakeFiles/${CMAKE_PROJECT_NAME}.dir/src")
+add_custom_target(coverage
+    DEPENDS ${UT_PROJECT}
+    COMMAND ./${UT_PROJECT}
+    COMMAND mkdir -p coverage
+    COMMAND gcov ${GCOV_FILES_PATH}/source.cpp.gcno
+    COMMAND lcov --capture --directory ${GCOV_FILES_PATH} --output-file coverage/coverage.info
+    COMMAND genhtml coverage/coverage.info --output-directory coverage
+)
